@@ -4,18 +4,25 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using System;
 
 namespace Content.Pipeline.MedataProcessing.AzureFunction
 {
     public class MetadataProcessingFunctions
     {
         [FunctionName("MetadataProcessingFunction")]
-        public async Task<IActionResult> Run(
-            [HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)] HttpRequest req,
-            ILogger log)
+        public void Run(
+        [ServiceBusTrigger("metadata-topic","MetadataProcessingFunctionSubscription", Connection = "Servicebus:ServicebusConnectionString")]
+        string myQueueItem,
+        Int32 deliveryCount,
+        DateTime enqueuedTimeUtc,
+        string messageId,
+        ILogger log)
         {
-
-            return new OkObjectResult("Metadata processing function");
+            log.LogInformation($"C# ServiceBus queue trigger function processed message: {myQueueItem}");
+            log.LogInformation($"EnqueuedTimeUtc={enqueuedTimeUtc}");
+            log.LogInformation($"DeliveryCount={deliveryCount}");
+            log.LogInformation($"MessageId={messageId}");
         }
     }
 }
